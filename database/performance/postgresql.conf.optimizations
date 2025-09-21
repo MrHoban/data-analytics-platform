@@ -1,0 +1,102 @@
+# PostgreSQL Performance Optimizations for Data Analytics Platform
+# Add these settings to postgresql.conf or use ALTER SYSTEM commands
+
+# Memory Settings
+shared_buffers = 256MB                    # 25% of RAM for dedicated server
+effective_cache_size = 1GB                # Estimate of OS cache size
+work_mem = 16MB                           # Memory for sorts and hash joins
+maintenance_work_mem = 128MB              # Memory for maintenance operations
+max_wal_size = 2GB                        # Maximum WAL size
+min_wal_size = 512MB                      # Minimum WAL size
+
+# Connection Settings
+max_connections = 100                      # Adjust based on application needs
+shared_preload_libraries = 'pg_stat_statements'  # For query analysis
+
+# Query Planner Settings
+random_page_cost = 1.1                    # SSD storage assumption
+effective_io_concurrency = 200            # Number of concurrent I/O operations
+seq_page_cost = 1.0                       # Sequential page cost
+
+# Checkpoint Settings
+checkpoint_completion_target = 0.9        # Spread checkpoints over time
+checkpoint_timeout = 10min                # Maximum time between checkpoints
+
+# WAL Settings
+wal_buffers = 16MB                        # WAL buffer size
+wal_writer_delay = 200ms                  # WAL writer delay
+
+# Background Writer Settings
+bgwriter_delay = 200ms                    # Background writer delay
+bgwriter_lru_maxpages = 100              # Pages written per round
+bgwriter_lru_multiplier = 2.0            # Multiplier for next round
+
+# Autovacuum Settings (important for analytics workloads)
+autovacuum = on                           # Enable autovacuum
+autovacuum_max_workers = 3                # Number of autovacuum workers
+autovacuum_naptime = 1min                 # Time between autovacuum runs
+autovacuum_vacuum_threshold = 50          # Minimum number of updated tuples
+autovacuum_analyze_threshold = 50         # Minimum number of updated tuples
+autovacuum_vacuum_scale_factor = 0.2      # Fraction of table size
+autovacuum_analyze_scale_factor = 0.1     # Fraction of table size
+
+# Statistics Settings
+track_activities = on                     # Track running commands
+track_counts = on                         # Track table/index access
+track_io_timing = on                      # Track I/O timing
+track_functions = all                     # Track function calls
+default_statistics_target = 100           # Statistics target for ANALYZE
+
+# Logging Settings for Performance Analysis
+log_min_duration_statement = 1000         # Log slow queries (1 second)
+log_checkpoints = on                      # Log checkpoint activity
+log_connections = on                      # Log connections
+log_disconnections = on                   # Log disconnections
+log_lock_waits = on                       # Log lock waits
+log_temp_files = 10MB                     # Log temp files larger than 10MB
+
+# Parallel Query Settings
+max_parallel_workers_per_gather = 2       # Parallel workers per query
+max_parallel_workers = 8                  # Total parallel workers
+max_parallel_maintenance_workers = 2      # Parallel maintenance workers
+
+# JIT Settings (PostgreSQL 11+)
+jit = on                                  # Enable JIT compilation
+jit_above_cost = 100000                   # JIT cost threshold
+jit_inline_above_cost = 500000            # JIT inline cost threshold
+jit_optimize_above_cost = 500000          # JIT optimization cost threshold
+
+# Additional Settings for Analytics Workloads
+enable_hashjoin = on                      # Enable hash joins
+enable_mergejoin = on                     # Enable merge joins
+enable_nestloop = on                      # Enable nested loop joins
+enable_seqscan = on                       # Enable sequential scans
+enable_indexscan = on                     # Enable index scans
+enable_bitmapscan = on                    # Enable bitmap scans
+
+# Timezone
+timezone = 'UTC'                          # Use UTC for consistency
+
+# Locale Settings
+lc_messages = 'en_US.UTF-8'
+lc_monetary = 'en_US.UTF-8'
+lc_numeric = 'en_US.UTF-8'
+lc_time = 'en_US.UTF-8'
+
+# Default text search configuration
+default_text_search_config = 'pg_catalog.english'
+
+# SSL Settings (for production)
+ssl = on                                  # Enable SSL
+ssl_cert_file = 'server.crt'            # SSL certificate
+ssl_key_file = 'server.key'             # SSL private key
+ssl_ca_file = 'ca.crt'                  # SSL certificate authority
+
+# Archive Settings (for backup and replication)
+archive_mode = on                         # Enable archiving
+archive_command = 'cp %p /var/lib/postgresql/archive/%f'  # Archive command
+
+# Replication Settings (if using replication)
+max_wal_senders = 3                       # Maximum WAL senders
+wal_level = replica                       # WAL level for replication
+hot_standby = on                          # Enable hot standby

@@ -1,0 +1,138 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: data-analytics-postgres
+    environment:
+      POSTGRES_DB: data_analytics
+      POSTGRES_USER: analytics_user
+      POSTGRES_PASSWORD: analytics_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - analytics-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics_user -d data_analytics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: data-analytics-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - analytics-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # C# Backend API
+  backend-api:
+    build:
+      context: ./backend
+      dockerfile: DataAnalytics.API/Dockerfile
+    container_name: data-analytics-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=data_analytics;Username=analytics_user;Password=analytics_password
+      - ConnectionStrings__Redis=redis:6379
+      - PythonService__BaseUrl=http://analytics-engine:8000
+    ports:
+      - "5000:80"
+      - "5001:443"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - analytics-network
+    volumes:
+      - ./backend/logs:/app/logs
+
+  # Python Analytics Engine
+  analytics-engine:
+    build:
+      context: ./analytics-engine
+      dockerfile: Dockerfile
+    container_name: data-analytics-python
+    environment:
+      - DATABASE_URL=postgresql://analytics_user:analytics_password@postgres:5432/data_analytics
+      - REDIS_URL=redis://redis:6379
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - analytics-network
+    volumes:
+      - ./analytics-engine/models:/app/models
+      - ./analytics-engine/data:/app/data
+
+  # Frontend (React Dashboard)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: data-analytics-frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+      - REACT_APP_PYTHON_API_URL=http://localhost:8000
+    ports:
+      - "3000:80"
+    networks:
+      - analytics-network
+    depends_on:
+      - backend-api
+      - analytics-engine
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Jupyter Notebook Server (Optional for development)
+  jupyter:
+    build:
+      context: ./analytics-engine
+      dockerfile: Dockerfile.jupyter
+    container_name: data-analytics-jupyter
+    environment:
+      - DATABASE_URL=postgresql://analytics_user:analytics_password@postgres:5432/data_analytics
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./analytics-engine/notebooks:/home/jovyan/work
+      - ./analytics-engine/data:/home/jovyan/data
+    networks:
+      - analytics-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  analytics-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
