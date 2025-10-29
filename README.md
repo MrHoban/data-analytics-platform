@@ -278,9 +278,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-- Portfolio: [your-portfolio.com](https://your-portfolio.com)
+- GitHub: [@yourusername](https://github.com/MrHoban)
+- LinkedIn: [Your LinkedIn]([https://www.linkedin.com/in/joshua-hoban-258641276/])
+- Portfolio: Working on now
 
 ## 🙏 Acknowledgments
 
