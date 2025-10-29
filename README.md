@@ -85,20 +85,6 @@
 - **Plotly**: Data visualization
 - **statsmodels**: Statistical analysis
 
-## 📸 Screenshots
-
-### Dashboard Overview
-![Dashboard](docs/images/dashboard-overview.png)
-*Modern, responsive dashboard with dark/light theme support*
-
-### Machine Learning Interface
-![ML Interface](docs/images/ml-interface.png)
-*Intuitive machine learning model training and evaluation*
-
-### Data Visualization
-![Visualizations](docs/images/data-visualization.png)
-*Interactive charts and statistical analysis tools*
-
 ## 🚀 Quick Start
 
 ### Prerequisites
