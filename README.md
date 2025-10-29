@@ -10,10 +10,6 @@
 
 > A comprehensive, production-ready data analytics platform demonstrating expertise in data processing, visualization, and machine learning. Built with modern microservices architecture and designed for scalability and performance.
 
-## ✨ Live Demo
-
-🌐 **[View Live Demo](https://your-demo-url.com)** | 📖 **[API Documentation](https://your-api-docs.com)** | 🎥 **[Video Walkthrough](https://your-video-url.com)**
-
 ## 🎯 Key Highlights
 
 - 🏗️ **Microservices Architecture** - Scalable C# API + Python Analytics Engine
